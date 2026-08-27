@@ -34,8 +34,11 @@ final class ReportClient {
         }
     }
     static final class LoginNeeded extends IOException {}
+    interface PageLoader { Document load(String url, Map<String, String> fields) throws IOException; }
     private final String userAgent;
-    ReportClient(String userAgent) { this.userAgent = userAgent; }
+    private final PageLoader pageLoader;
+    ReportClient(String userAgent) { this(userAgent, null); }
+    ReportClient(String userAgent, PageLoader pageLoader) { this.userAgent = userAgent; this.pageLoader = pageLoader; }
 
     Scan scan(String url, String city, String major) throws IOException {
         Set<String> matches = new LinkedHashSet<>(), visited = new HashSet<>(), signatures = new HashSet<>();
@@ -55,6 +58,9 @@ final class ReportClient {
                     Matcher m = POSTBACK.matcher(script);
                     if (m.find()) {
                         String target = m.group(1), command = m.group(2);
+                        // The current page is usually a span, not a link: seed page 1 even
+                        // when its anchor is absent, otherwise page 2 takes us back to it.
+                        if (count == 1) visited.add(target + ":1");
                         if (command.equals("Last")) { lastAvailable = true; continue; }
                         if (command.equals("First") || command.equals("Prev")) continue;
                         String key = target + ":" + command;
@@ -113,6 +119,7 @@ final class ReportClient {
     }
 
     private Document fetch(String url, Map<String, String> fields) throws IOException {
+        if (pageLoader != null) return pageLoader.load(url, fields);
         for (int redirect = 0; redirect <= 4; redirect++) {
             if (!UrlPolicy.report(url)) throw new LoginNeeded();
             HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
