@@ -1,0 +1,9 @@
+<resources>
+    <item name="search_input" type="id" />
+    <item name="results_count" type="id" />
+    <item name="guide_title" type="id" />
+    <item name="guide_progress" type="id" />
+    <item name="favorite_button" type="id" />
+    <item name="body_scroll" type="id" />
+    <item name="content_root" type="id" />
+</resources>

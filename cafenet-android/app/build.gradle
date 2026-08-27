@@ -1,0 +1,26 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'ir.cafenet.hamyar'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'ir.cafenet.hamyar'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+    buildTypes {
+        debug { debuggable false }
+        release { minifyEnabled false }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    lint { abortOnError true }
+}
+dependencies {
+    implementation 'androidx.activity:activity:1.11.0'
+    testImplementation 'junit:junit:4.13.2'
+}
