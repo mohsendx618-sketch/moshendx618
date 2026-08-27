@@ -13,7 +13,10 @@ final class UrlPolicy {
         "irantvto.ir","yazd.irantvto.ir","sanjesh.irantvto.ir","tehran.irantvto.ir",
         "portaltvto.com","azmoon.portaltvto.com","certificate.portaltvto.com","pay.portaltvto.com",
         "support.microsoft.com","support.google.com","mail.google.com","docs.gimp.org","www.gimp.org",
-        "pdfsam.org","blog.pdfsam.org"
+        "pdfsam.org","blog.pdfsam.org",
+        "my.tax.gov.ir","tax.gov.ir","intamedia.ir","tp.tax.gov.ir","salary.tax.gov.ir",
+        "www.nezamqom.ir","acco.ir","chargoon.com","www.sppcco.com","shenasname.ir",
+        "irnotary.ir","way2pay.ir","ec.iau.ir","www.scribd.com","www.ekhtebar.ir"
     ));
     static boolean isAllowed(String value) {
         try {

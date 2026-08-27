@@ -45,4 +45,18 @@ public class SearchEngineTest {
     @Test public void numberSearch(){assertEquals("postal",SearchEngine.search(all(),"۱۰ رقمی").get(0).entry.id);}
     @Test public void noDocuments(){assertTrue(SearchEngine.search(Collections.emptyList(),"کد").isEmpty());}
     @Test public void punctuationOnlyIsEmptyQuery(){assertEquals(2,SearchEngine.search(all(),"؟؟؟").size());}
+    private List<SearchEngine.Entry> taxes(){return Arrays.asList(
+        new SearchEngine.Entry("tax100","فرم تبصره ماده ۱۰۰","مالیات؛ عملکرد","تبصره100 ماده صد tax100",Arrays.asList(new SearchEngine.Section(1,"مالیات مقطوع را با اظهارنامه کامل اشتباه نگیر"))),
+        new SearchEngine.Entry("taxvat","اظهارنامه پیش‌فرض مالیات بر ارزش افزوده","مالیات؛ سایر اظهارنامه‌ها","vat taxvat",Arrays.asList(new SearchEngine.Section(2,"اعتبار خرید نیامده؛ نوع صورتحساب و دوره را بررسی کن"))),
+        new SearchEngine.Entry("taxrent","اظهارنامه درآمد اجاره املاک","مالیات؛ سایر اظهارنامه‌ها","موجر taxrent",Arrays.asList(new SearchEngine.Section(0,"قرارداد و مشخصات مستأجر و سهم مالک آماده باشد"))),
+        new SearchEngine.Entry("group3","اظهارنامه مشاغل انفرادی؛ گروه سوم","مالیات؛ عملکرد","اظهارنامه حقیقی گروه ۳ group3",Arrays.asList(new SearchEngine.Section(1,"خلاصه درآمد و هزینه را بخوان")))
+    );}
+    @Test public void taxPersianArticleNumber(){assertEquals("tax100",SearchEngine.search(taxes(),"تبصره ۱۰۰").get(0).entry.id);}
+    @Test public void taxArabicArticleNumber(){assertEquals("tax100",SearchEngine.search(taxes(),"تبصره ١٠٠").get(0).entry.id);}
+    @Test public void taxJoinedArticleNumber(){assertEquals("tax100",SearchEngine.search(taxes(),"تبصره100").get(0).entry.id);}
+    @Test public void taxSpacedDeclaration(){assertEquals("taxrent",SearchEngine.search(taxes(),"اظهار نامه اجاره").get(0).entry.id);}
+    @Test public void taxPersianGroupNumber(){assertEquals("group3",SearchEngine.search(taxes(),"حقیقی گروه ۳").get(0).entry.id);}
+    @Test public void taxProblemRoutesToHelp(){assertEquals(2,SearchEngine.search(taxes(),"اعتبار خرید نیامده").get(0).tab);}
+    @Test public void taxReadyRoutesToReady(){assertEquals(0,SearchEngine.search(taxes(),"سهم مالک").get(0).tab);}
+    @Test public void taxAliasesStayDistinct(){assertEquals("taxvat",SearchEngine.search(taxes(),"taxvat").get(0).entry.id);assertEquals(1,SearchEngine.search(taxes(),"taxvat").size());}
 }

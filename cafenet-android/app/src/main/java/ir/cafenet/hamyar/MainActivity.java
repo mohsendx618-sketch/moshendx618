@@ -74,7 +74,8 @@ public final class MainActivity extends ComponentActivity {
         Button clear=Ui.button(this,"پاک",false,()->search.setText(""));clear.setContentDescription("پاک کردن جست‌وجو");LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(Ui.dp(this,56),-2);cp.setMarginStart(Ui.dp(this,6));searchRow.addView(clear,cp);
         search.setText(query);search.setSelection(query.length());
         search.setOnEditorActionListener((v,id,event)->{hideKeyboard();return true;});
-        modeRow=Ui.row(this);LinearLayout.LayoutParams mp=new LinearLayout.LayoutParams(-1,-2);mp.topMargin=Ui.dp(this,10);header.addView(modeRow,mp);renderModes();
+        Button taxes=Ui.button(this,"مالیات و اظهارنامه • "+Ui.fa(catalog.taxCount())+" راهنما",category.equals("همه مالیات‌ها"),()->{query="";mode="همه";category="همه مالیات‌ها";homeY=0;showHome();});taxes.setId(R.id.tax_shortcut);LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-1,-2);tp.topMargin=Ui.dp(this,8);header.addView(taxes,tp);
+        modeRow=Ui.row(this);LinearLayout.LayoutParams mp=new LinearLayout.LayoutParams(-1,-2);mp.topMargin=Ui.dp(this,8);header.addView(modeRow,mp);renderModes();
         HorizontalScrollView cats=new HorizontalScrollView(this);cats.setHorizontalScrollBarEnabled(false);header.addView(cats);filterRow=Ui.row(this);cats.addView(filterRow);renderCategories();
         resultCount=Ui.text(this,header,"",13,false);resultCount.setId(R.id.results_count);resultCount.setTextColor(Ui.MUTED);
         results=scrolling(root);renderResults();
@@ -87,7 +88,7 @@ public final class MainActivity extends ComponentActivity {
         if(results==null)return;results.removeAllViews();List<SearchEngine.Hit> hits=SearchEngine.search(catalog.entries,query);List<String> recent=state.recent();
         if(mode.equals("اخیر"))hits.sort(Comparator.comparingInt(h->{int i=recent.indexOf(h.entry.id);return i<0?999:i;}));
         int n=0;
-        for(SearchEngine.Hit h:hits){Guide g=catalog.byId.get(h.entry.id);if(!category.equals("همه موضوع‌ها")&&!category.equals(g.category))continue;
+        for(SearchEngine.Hit h:hits){Guide g=catalog.byId.get(h.entry.id);if(category.equals("همه مالیات‌ها")){if(!g.id.startsWith("tax_"))continue;}else if(!category.equals("همه موضوع‌ها")&&!category.equals(g.category))continue;
             if(mode.equals("نشان‌شده")&&!state.favorite(g.id))continue;if(mode.equals("اخیر")&&!recent.contains(g.id))continue;
             int count=state.count(g);if(mode.equals("نیمه‌تمام")&&(count==0||count==g.steps.size()))continue;n++;
             LinearLayout card=Ui.card(this,results,Ui.WHITE);Ui.clickable(this,card,Ui.WHITE,18);card.setFocusable(true);card.setContentDescription("باز کردن «"+g.title+"»");
@@ -156,7 +157,7 @@ public final class MainActivity extends ComponentActivity {
         .setNegativeButton("برگشت",null).setNeutralButton("کپی نشانی",(d,w)->{ClipboardManager c=(ClipboardManager)getSystemService(CLIPBOARD_SERVICE);if(c!=null)c.setPrimaryClip(ClipData.newPlainText("نشانی منبع",url));toast("نشانی کپی شد");})
         .setPositiveButton("باز کن",(d,w)->{try{startActivity(new Intent(Intent.ACTION_VIEW,android.net.Uri.parse(url)));}catch(ActivityNotFoundException e){toast("مرورگر نصب نیست؛ نشانی را کپی کن.");}}).show();
     }
-    private void about(){new AlertDialog.Builder(this).setTitle("همیار کافی‌نت ۱.۰").setMessage(Ui.fa(catalog.guides.size())+" آموزش متنی • بدون تبلیغ\n\nجست‌وجو، آموزش‌ها، نشان‌ها و تیک مراحل بدون اینترنت کار می‌کنند. انجام خدمات در سایت‌های اصلی اینترنت می‌خواهد.\n\nاین نسخه آموزشی است؛ همه خدمات کافی‌نت را پوشش نمی‌دهد. مراحل پشت ورود و پرداخت سامانه‌های دولتی با حساب واقعی آزمایش نشده‌اند. هر راهنما تاریخ و سطح بررسی دارد.\n\nهیچ کد ملی، رمز، شماره کارت، پیامک یا اطلاعات مشتری دریافت نمی‌شود. فقط شناسه راهنماهای اخیر، نشان‌ها، اندازه متن و تیک‌ها روی همین گوشی ذخیره می‌شوند.\n\nدر جست‌وجو فقط موضوع کار را بنویس، نه اطلاعات مشتری. برای یک مشتری تازه تیک‌های راهنمای قبلی را پاک کن.").setPositiveButton("متوجه شدم",null).show();}
+    private void about(){new AlertDialog.Builder(this).setTitle("همیار کافی‌نت ۱.۱").setMessage(Ui.fa(catalog.guides.size())+" آموزش متنی • "+Ui.fa(catalog.taxCount())+" راهنمای مالیاتی • بدون تبلیغ\n\nجست‌وجو، آموزش‌ها، نشان‌ها و تیک مراحل بدون اینترنت کار می‌کنند. انجام خدمات در سایت‌های اصلی اینترنت می‌خواهد.\n\nاین نسخه آموزشی است و همه استثناهای مالیاتی را پوشش نمی‌دهد. آموزش مالیات جای حسابدار و مشاور مالیاتی نیست؛ نرخ، نصاب، مهلت و معافیت باید طبق مقررات همان سال و دوره تأیید شوند.\n\nمراحل پشت ورود، ارسال اظهارنامه و پرداخت با حساب واقعی آزمایش نشده‌اند. منابع آرشیوی و بازنشرشده و حدود اعتبار هر راهنما مشخص‌اند.\n\nهیچ کد ملی، رمز، شماره کارت، پیامک یا اطلاعات مشتری دریافت نمی‌شود. فقط شناسه راهنماهای اخیر، نشان‌ها، اندازه متن و تیک‌ها روی همین گوشی ذخیره می‌شوند.\n\nدر جست‌وجو فقط موضوع کار را بنویس، نه اطلاعات مشتری. برای یک مشتری تازه تیک‌های راهنمای قبلی را پاک کن.").setPositiveButton("متوجه شدم",null).show();}
     private void hideKeyboard(){InputMethodManager m=(InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);if(m!=null&&search!=null)m.hideSoftInputFromWindow(search.getWindowToken(),0);}
     private void toast(String s){Toast.makeText(this,s,Toast.LENGTH_SHORT).show();}
 }

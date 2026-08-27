@@ -26,18 +26,29 @@ final class Catalog {
     static List<String> strings(JSONArray a) throws Exception {
         List<String> out=new ArrayList<>();for(int i=0;i<a.length();i++)out.add(a.getString(i));return out;
     }
-    Catalog(Context context) throws Exception {
+    private JSONObject readAsset(Context context,String name) throws Exception {
         String json;
-        try(InputStream in=context.getAssets().open("guides.json")) {
+        try(InputStream in=context.getAssets().open(name)) {
             java.io.ByteArrayOutputStream buffer=new java.io.ByteArrayOutputStream();
             byte[] bytes=new byte[8192];int n;
             while((n=in.read(bytes))!=-1)buffer.write(bytes,0,n);
             json=buffer.toString(StandardCharsets.UTF_8.name());
         }
-        JSONObject root=new JSONObject(json);
+        return new JSONObject(json);
+    }
+    Catalog(Context context) throws Exception {
+        JSONObject root=readAsset(context,"guides.json");
         reviewed=root.getString("reviewed");note=root.getString("note");
+        addPack(root);
+        JSONObject tax=readAsset(context,"taxes.json");
+        note += "\n\n"+tax.getString("note");
+        addPack(tax);
+        if(guides.isEmpty())throw new IllegalArgumentException("Empty catalogue");
+    }
+    int taxCount(){int count=0;for(Guide g:guides)if(g.id.startsWith("tax_"))count++;return count;}
+    private void addPack(JSONObject root) throws Exception {
         JSONObject refs=root.getJSONObject("sources");
-        java.util.Iterator<String> keys=refs.keys();while(keys.hasNext()){String k=keys.next();sources.put(k,new Source(refs.getJSONObject(k)));}
+        java.util.Iterator<String> keys=refs.keys();while(keys.hasNext()){String k=keys.next();if(sources.containsKey(k))throw new IllegalArgumentException("Duplicate source");sources.put(k,new Source(refs.getJSONObject(k)));}
         JSONArray list=root.getJSONArray("guides");
         for(int i=0;i<list.length();i++) {
             JSONObject o=list.getJSONObject(i);List<Guide.Step> steps=new ArrayList<>();List<Guide.Problem> problems=new ArrayList<>();
@@ -51,6 +62,5 @@ final class Catalog {
             if(!g.route.isEmpty()&&!UrlPolicy.isAllowed(g.route))throw new IllegalArgumentException("Unapproved route");
             guides.add(g);byId.put(g.id,g);entries.add(g.searchEntry);categories.add(g.category);
         }
-        if(guides.isEmpty())throw new IllegalArgumentException("Empty catalogue");
     }
 }

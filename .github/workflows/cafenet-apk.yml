@@ -33,10 +33,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          cp cafenet-android/app/build/outputs/apk/debug/app-debug.apk dist/Hamyar-CafeNet-1.0.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose dist/Hamyar-CafeNet-1.0.apk
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging dist/Hamyar-CafeNet-1.0.apk > dist/apk-info.txt
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions dist/Hamyar-CafeNet-1.0.apk > dist/permissions.txt
+          cp cafenet-android/app/build/outputs/apk/debug/app-debug.apk dist/Hamyar-CafeNet-1.1.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose dist/Hamyar-CafeNet-1.1.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging dist/Hamyar-CafeNet-1.1.apk > dist/apk-info.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions dist/Hamyar-CafeNet-1.1.apk > dist/permissions.txt
+          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" dist/apksigner.jar
           python3 - <<'PY'
           from pathlib import Path
           text = Path('dist/permissions.txt').read_text()
@@ -47,7 +48,7 @@ jobs:
           print('No network, SMS, contacts or shared storage permissions')
           PY
           cd dist
-          sha256sum Hamyar-CafeNet-1.0.apk > SHA256SUMS.txt
+          sha256sum Hamyar-CafeNet-1.1.apk apksigner.jar > SHA256SUMS.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: Hamyar-CafeNet-APK
