@@ -21,7 +21,11 @@ PY
 adb shell screencap -p /sdcard/tarhplus-home.png
 adb pull /sdcard/tarhplus-home.png "$report_dir/home.png"
 adb logcat -d -b crash > "$report_dir/crash.log"
-if rg -q 'Process: ir\.tarhplus\.watch' "$report_dir/crash.log"; then
-    cat "$report_dir/crash.log"
-    exit 1
-fi
+python3 - "$report_dir/crash.log" <<'PY'
+from pathlib import Path
+import sys
+log = Path(sys.argv[1]).read_text()
+if 'Process: ir.tarhplus.watch' in log:
+    raise SystemExit('Application crash was recorded during the launch test')
+print('Application crash log check passed')
+PY
