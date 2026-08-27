@@ -45,6 +45,11 @@ public class ReportParserTest {
     @Test public void specialtyRequiresWordBoundaries() {
         assertEquals(ReportParser.State.NONE, parse(table(row("آباده", "اتاق عملیات"))).state);
     }
+    @Test public void specialtyMustBeInSpecialtyColumn() {
+        String html = "<table><tr><th>شهرستان</th><th>رشته</th><th>بخش</th></tr>"
+                + "<tr><td>آباده</td><td>پرستاری</td><td>اتاق عمل</td></tr></table>";
+        assertEquals(ReportParser.State.NONE, parse(html).state);
+    }
     @Test public void cityPrefixLabelIsAccepted() {
         assertEquals(ReportParser.State.MATCH, parse(table(row("شهرستان آباده", "کارشناس اتاق عمل"))).state);
     }

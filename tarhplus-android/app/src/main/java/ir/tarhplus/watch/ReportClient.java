@@ -120,6 +120,8 @@ final class ReportClient {
                 connection.setConnectTimeout(20_000);
                 connection.setReadTimeout(25_000);
                 connection.setInstanceFollowRedirects(false);
+                connection.setUseCaches(false);
+                connection.setRequestProperty("Cache-Control", "no-cache");
                 connection.setRequestProperty("Accept", "text/html,application/xhtml+xml");
                 if (!userAgent.isEmpty()) connection.setRequestProperty("User-Agent", userAgent);
                 String cookie = CookieManager.getInstance().getCookie(url);

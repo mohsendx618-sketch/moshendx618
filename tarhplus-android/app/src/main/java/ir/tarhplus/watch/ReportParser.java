@@ -65,7 +65,7 @@ public final class ReportParser {
         List<String> allRows = new ArrayList<>();
         for (Element table : doc.select("table")) {
             Elements rows = directRows(table);
-            int headerAt = -1, cityIndex = -1;
+            int headerAt = -1, cityIndex = -1, specialtyIndex = -1;
             for (int ri = 0; ri < Math.min(4, rows.size()); ri++) {
                 Elements cells = cells(rows.get(ri));
                 if (cells.isEmpty() || !rows.get(ri).select("table").isEmpty()) continue;
@@ -77,6 +77,7 @@ public final class ReportParser {
                     for (int i = 0; i < cells.size(); i++) {
                         String h = normalize(cells.get(i).text());
                         if (h.equals("شهر") || h.contains("شهرستان")) cityIndex = i;
+                        if (h.contains("رشته") || h.contains("تخصص")) specialtyIndex = i;
                     }
                     break;
                 }
@@ -96,7 +97,9 @@ public final class ReportParser {
                 } else if (normalize(city).equals("اباده") && normalize(text).contains("اباده طشک")) {
                     cityMatch = false;
                 }
-                if (cityMatch && containsTerm(text, specialty)) matches.add(text);
+                boolean specialtyMatch = specialtyIndex >= 0 && specialtyIndex < cells.size()
+                        && containsTerm(cells.get(specialtyIndex).text(), specialty);
+                if (cityMatch && specialtyMatch) matches.add(text);
             }
         }
         State state = reports.isEmpty() || allRows.isEmpty() ? State.UNKNOWN : matches.isEmpty() ? State.NONE : State.MATCH;

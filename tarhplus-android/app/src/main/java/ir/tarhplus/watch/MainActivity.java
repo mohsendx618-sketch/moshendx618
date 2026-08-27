@@ -46,11 +46,11 @@ public final class MainActivity extends Activity implements SharedPreferences.On
         GradientDrawable background = new GradientDrawable(); background.setColor(Color.WHITE); background.setCornerRadius(Ui.dp(this, 18)); card.setBackground(background);
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2); cardParams.bottomMargin = Ui.dp(this, 18); body.addView(card, cardParams);
         Ui.text(this, card, "وضعیت بررسی", 15, true);
-        status = Ui.text(this, card, "", 15, false); status.setId(4101);
+        status = Ui.text(this, card, "", 15, false); status.setId(R.id.status_text);
         times = Ui.text(this, card, "", 11, false);
         telegram = Ui.text(this, card, "", 12, false);
 
-        Ui.button(this, body, "۱. ورود به سامانه و انتخاب گزارش", () -> startActivity(new Intent(this, LoginActivity.class)), true).setId(4102);
+        Ui.button(this, body, "۱. ورود به سامانه و انتخاب گزارش", () -> startActivity(new Intent(this, LoginActivity.class)), true).setId(R.id.login_button);
         Ui.button(this, body, "۲. تنظیم و آزمایش تلگرام", this::telegramSettings, false);
         Ui.button(this, body, "بررسی همین حالا", () -> {
             if (!settings.prefs.getBoolean("chosen", false)) { toast("اول از دکمه ورود، صفحه گزارش را انتخاب کن."); return; }
@@ -85,9 +85,9 @@ public final class MainActivity extends Activity implements SharedPreferences.On
     private void refresh() {
         if (settings == null) return;
         refreshing = true;
-        target.setText(settings.major() + "  |  " + settings.city());
+        target.setText(getString(R.string.target_summary, settings.major(), settings.city()));
         status.setText(settings.prefs.getString("status", "هنوز بررسی نشده. ابتدا وارد سامانه شو و صفحه گزارش را انتخاب کن."));
-        times.setText("آخرین تلاش: " + date(settings.prefs.getLong("last_attempt", 0)) + "\nآخرین بررسی موفق: " + date(settings.prefs.getLong("last_success", 0)));
+        times.setText(getString(R.string.check_times, date(settings.prefs.getLong("last_attempt", 0)), date(settings.prefs.getLong("last_success", 0))));
         telegram.setText(settings.prefs.getBoolean("telegram_enabled", false)
                 ? settings.prefs.getString("telegram_status", "اعلان تلگرام فعال است.") : "اعلان تلگرام هنوز فعال نیست.");
         daily.setChecked(settings.prefs.getBoolean("daily", false));
@@ -124,15 +124,19 @@ public final class MainActivity extends Activity implements SharedPreferences.On
                 .setPositiveButton("ذخیره و ارسال تست", null).setNegativeButton("بستن", null)
                 .setNeutralButton("قطع اعلان تلگرام", (d, w) -> settings.prefs.edit().putBoolean("telegram_enabled", false).apply()).create();
         dialog.show(); dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        java.util.concurrent.atomic.AtomicBoolean keepResult = new java.util.concurrent.atomic.AtomicBoolean(true);
+        dialog.setOnDismissListener(d -> keepResult.set(false));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String t = token.getText().toString().trim(), c = chat.getText().toString().trim();
             if (!Telegram.validToken(t) || !Telegram.validChat(c)) { toast("توکن ربات یا Chat ID قالب درستی ندارد."); return; }
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setText("در حال ارسال…");
+            long generation = settings.prefs.getLong("generation", 0);
             new Thread(() -> {
                 boolean ok = false;
                 try {
                     Telegram.send(t, c, "پیام آزمایشی پایش طرح‌پلاس\nاتصال ربات برقرار است. پس از روشن کردن بررسی روزانه، تغییر نتیجه یا خطای بررسی اطلاع داده می‌شود.");
+                    if (!keepResult.get() || settings.prefs.getLong("generation", 0) != generation) return;
                     settings.prefs.edit().putBoolean("telegram_enabled", false).apply();
                     settings.putSecret("bot", t); settings.putSecret("chat", c);
                     settings.prefs.edit().putBoolean("telegram_enabled", true).remove("telegram_fingerprint").remove("telegram_warning")

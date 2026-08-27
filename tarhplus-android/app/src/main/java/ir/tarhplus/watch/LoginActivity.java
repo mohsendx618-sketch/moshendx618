@@ -1,9 +1,7 @@
 package ir.tarhplus.watch;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.net.http.SslError;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
@@ -16,8 +14,10 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.ComponentActivity;
+import androidx.activity.OnBackPressedCallback;
 
-public final class LoginActivity extends Activity {
+public final class LoginActivity extends ComponentActivity {
     private WebView web;
     private TextView address;
     @SuppressLint("SetJavaScriptEnabled")
@@ -62,7 +62,9 @@ public final class LoginActivity extends Activity {
                 .setItems(new String[]{"رفتن به گزارش ذخیره‌شده", "صفحه اصلی سامانه", "برگشت به برنامه"}, (d, i) -> {
                     if (i == 0) web.loadUrl(new Settings(this).reportUrl()); else if (i == 1) web.loadUrl(UrlPolicy.HOME); else finish();
                 }).show(), false);
-        if (Build.VERSION.SDK_INT >= 33) getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, this::goBack);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() { goBack(); }
+        });
         web.loadUrl(getIntent().getBooleanExtra("report", false) ? new Settings(this).reportUrl() : UrlPolicy.HOME);
     }
 
@@ -80,7 +82,6 @@ public final class LoginActivity extends Activity {
         } catch (Exception e) { Toast.makeText(this, "ذخیره امن نشانی انجام نشد؛ دوباره تلاش کن.", Toast.LENGTH_LONG).show(); }
     }
     private void goBack() { if (web.canGoBack()) web.goBack(); else finish(); }
-    @Override public void onBackPressed() { goBack(); }
     @Override protected void onPause() { CookieManager.getInstance().flush(); super.onPause(); }
     @Override protected void onDestroy() {
         if (web != null) { web.stopLoading(); web.destroy(); }
